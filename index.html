@@ -240,9 +240,32 @@
 
   requestAnimationFrame(tick);
 };
+function renderList(){
+  listEl.innerHTML = "";
 
+  // 依備註排序（你之前想要的）
+  const sorted = [...RESTAURANTS].sort((a, b) => {
+    const noteA = a.note || "";
+    const noteB = b.note || "";
 
+    if (noteA !== noteB) {
+      return noteA.localeCompare(noteB, "zh-Hant");
+    }
+    return a.name.localeCompare(b.name, "zh-Hant");
+  });
+
+  sorted.forEach(r => {
+    const div = document.createElement("div");
+    div.className = "item";
+    div.innerHTML = `
+      <div class="name">${r.name}</div>
+      <div class="note">${r.note || ""}</div>
+    `;
+    listEl.appendChild(div);
+  });
+}
   renderList();
 </script>
 </body>
 </html>
+
