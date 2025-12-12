@@ -1,0 +1,441 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>吃什麼拉霸</title>
+  <style>
+    :root{
+      --bg:#0b0b0c; --card:#141416; --muted:#a7a7ad; --text:#f5f5f7;
+      --line:#2a2a2f; --danger:#ff4d4d;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans TC", sans-serif;
+      background: radial-gradient(1200px 600px at 20% 0%, #1a1a20, #0b0b0c);
+      color:var(--text);
+    }
+    header{
+      padding:18px 16px;
+      border-bottom:1px solid rgba(255,255,255,0.06);
+      background: rgba(11,11,12,0.6);
+      backdrop-filter: blur(10px);
+      position:sticky; top:0;
+      z-index:10;
+    }
+    .appname{font-size:18px; font-weight:800}
+    .subtitle{font-size:12px; color:var(--muted); margin-top:4px}
+
+    main{
+      padding:14px;
+      max-width:980px; margin:0 auto;
+    }
+    .card{
+      background: rgba(20,20,22,0.85);
+      border:1px solid rgba(255,255,255,0.08);
+      border-radius:18px;
+      padding:16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+    }
+    h2{margin:0 0 12px 0; font-size:16px}
+
+    .slotWrap{display:flex; justify-content:center; padding:10px 0 6px}
+    .slotWindow{
+      width:min(520px, 100%);
+      height:110px;
+      border-radius:18px;
+      border:1px solid rgba(255,255,255,0.10);
+      background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(0,0,0,0.25));
+      display:flex; align-items:center; justify-content:center;
+      position:relative; overflow:hidden;
+    }
+    .slotWindow::before, .slotWindow::after{
+      content:""; position:absolute; left:0; right:0; height:26px; pointer-events:none;
+    }
+    .slotWindow::before{top:0; background: linear-gradient(180deg, rgba(11,11,12,1), rgba(11,11,12,0));}
+    .slotWindow::after{bottom:0; background: linear-gradient(0deg, rgba(11,11,12,1), rgba(11,11,12,0));}
+    .slotText{
+      font-size:26px; font-weight:900; text-align:center; padding:0 12px; line-height:1.2;
+    }
+
+    .actions{display:flex; gap:10px; margin-top:10px; flex-wrap:wrap;}
+    button{
+      border:1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.06);
+      color:var(--text);
+      padding:10px 12px;
+      border-radius:12px;
+      cursor:pointer;
+      font-weight:700;
+    }
+    button.primary{
+      background: rgba(255,255,255,0.95);
+      color:#111;
+      border-color: rgba(255,255,255,0.9);
+    }
+    button:disabled{opacity:0.45; cursor:not-allowed;}
+    .hint{margin-top:10px; color:var(--muted); font-size:12px; min-height:16px}
+
+    form.addRow{
+      display:grid; gap:10px; margin-bottom:10px;
+      grid-template-columns: 1fr 1fr auto;
+    }
+    @media (max-width: 520px){ form.addRow{grid-template-columns: 1fr;} }
+
+    input{
+      border:1px solid rgba(255,255,255,0.12);
+      background: rgba(0,0,0,0.20);
+      color:var(--text);
+      padding:10px 12px;
+      border-radius:12px;
+      outline:none;
+    }
+    input:focus{border-color: rgba(255,255,255,0.28);}
+
+    .toolbar{
+      display:flex; gap:10px; align-items:center; justify-content:space-between;
+      flex-wrap:wrap; margin:8px 0 10px;
+    }
+    .switch{display:flex; gap:8px; align-items:center; color:var(--muted); font-size:12px;}
+
+    .list{display:flex; flex-direction:column; gap:8px}
+    .item{
+      display:grid; grid-template-columns: auto 1fr auto; gap:10px; align-items:center;
+      padding:10px 12px; border-radius:14px;
+      border:1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.03);
+    }
+    .badge{
+      font-size:12px; padding:6px 10px; border-radius:999px;
+      border:1px solid rgba(255,255,255,0.14);
+      color:var(--muted); cursor:pointer; user-select:none;
+    }
+    .badge.on{
+      color:#d6ffd6; border-color: rgba(120,255,120,0.25); background: rgba(120,255,120,0.08);
+    }
+    .name{font-weight:800}
+    .note{font-size:12px; color:var(--muted); margin-top:4px}
+    .rowBtns{display:flex; gap:8px}
+    .small{padding:8px 10px; border-radius:10px; font-weight:750; font-size:12px}
+    .danger{border-color: rgba(255,77,77,0.35); color: #ffd0d0;}
+    .empty{margin-top:10px; color:var(--muted); font-size:12px; padding:10px 0;}
+
+    /* ✅ 兩頁切換用 */
+    .page{display:none;}
+    .page.active{display:block;}
+
+    /* ✅ 底部導覽 */
+    .bottomNav{
+      position:fixed;
+      left:0; right:0; bottom:0;
+      padding:10px 12px calc(10px + env(safe-area-inset-bottom));
+      background: rgba(11,11,12,0.75);
+      border-top:1px solid rgba(255,255,255,0.08);
+      backdrop-filter: blur(10px);
+      display:flex; gap:10px; justify-content:center;
+      z-index:20;
+    }
+    .tabBtn{
+      width:min(460px, 48%);
+      display:flex; align-items:center; justify-content:center; gap:8px;
+    }
+    .tabBtn.active{
+      background: rgba(255,255,255,0.95);
+      color:#111;
+      border-color: rgba(255,255,255,0.9);
+    }
+
+    /* 讓內容不要被底部 nav 擋住 */
+    .padBottom{height:86px;}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="appname">🍜 吃什麼拉霸</div>
+    <div class="subtitle" id="subtitle">把餐廳丟進來，按一下就決定</div>
+  </header>
+
+  <main>
+    <!-- ✅ Page 1：拉霸 -->
+    <section id="page-slot" class="card page active">
+      <h2>拉霸機 🎰</h2>
+      <div class="slotWrap">
+        <div class="slotWindow">
+          <div id="slotText" class="slotText">（先新增餐廳）</div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button id="spinBtn" class="primary">開始拉霸</button>
+        <button id="spinAgainBtn" disabled>再抽一次</button>
+      </div>
+      <div id="resultHint" class="hint"></div>
+    </section>
+
+    <!-- ✅ Page 2：清單 -->
+    <section id="page-list" class="card page">
+      <h2>餐廳清單 🧾</h2>
+
+      <form id="addForm" class="addRow">
+        <input id="nameInput" placeholder="餐廳名稱（必填）" maxlength="40" />
+        <input id="noteInput" placeholder="備註：價位/地點/類型（選填）" maxlength="50" />
+        <button type="submit">新增</button>
+      </form>
+
+      <div class="toolbar">
+        <label class="switch">
+          <input id="onlyEligible" type="checkbox" checked />
+          <span>只抽「可抽」</span>
+        </label>
+
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <button id="seedBtn">塞入示範餐廳</button>
+          <button id="clearBtn" class="danger">清空全部</button>
+        </div>
+      </div>
+
+      <div id="list" class="list"></div>
+      <div id="empty" class="empty">目前沒有餐廳，先新增幾間吧～</div>
+    </section>
+
+    <div class="padBottom"></div>
+  </main>
+
+  <!-- ✅ 底部兩個 Tab -->
+  <nav class="bottomNav">
+    <button id="tabSlot" class="tabBtn active">🎰 拉霸</button>
+    <button id="tabList" class="tabBtn">🧾 清單</button>
+  </nav>
+
+  <script>
+    const LS_KEY = "eat_slot_singlefile_v1";
+
+    const subtitle = document.getElementById("subtitle");
+
+    // pages + tabs
+    const pageSlot = document.getElementById("page-slot");
+    const pageList = document.getElementById("page-list");
+    const tabSlot = document.getElementById("tabSlot");
+    const tabList = document.getElementById("tabList");
+
+    function showPage(which){
+      const isSlot = which === "slot";
+      pageSlot.classList.toggle("active", isSlot);
+      pageList.classList.toggle("active", !isSlot);
+
+      tabSlot.classList.toggle("active", isSlot);
+      tabList.classList.toggle("active", !isSlot);
+
+      subtitle.textContent = isSlot
+        ? "按一下就決定，別想了 😆"
+        : "新增/管理餐廳（可抽/不抽）";
+    }
+
+    tabSlot.addEventListener("click", () => showPage("slot"));
+    tabList.addEventListener("click", () => showPage("list"));
+
+    // original elements
+    const slotText = document.getElementById("slotText");
+    const spinBtn = document.getElementById("spinBtn");
+    const spinAgainBtn = document.getElementById("spinAgainBtn");
+    const resultHint = document.getElementById("resultHint");
+
+    const addForm = document.getElementById("addForm");
+    const nameInput = document.getElementById("nameInput");
+    const noteInput = document.getElementById("noteInput");
+
+    const listEl = document.getElementById("list");
+    const emptyEl = document.getElementById("empty");
+    const onlyEligibleEl = document.getElementById("onlyEligible");
+    const seedBtn = document.getElementById("seedBtn");
+    const clearBtn = document.getElementById("clearBtn");
+
+    let restaurants = load();
+    let spinning = false;
+    let lastPick = null;
+
+    function uid() {
+      return Math.random().toString(16).slice(2) + Date.now().toString(16);
+    }
+    function load() {
+      try {
+        const raw = localStorage.getItem(LS_KEY);
+        if (!raw) return [];
+        const data = JSON.parse(raw);
+        return Array.isArray(data) ? data : [];
+      } catch {
+        return [];
+      }
+    }
+    function save() {
+      localStorage.setItem(LS_KEY, JSON.stringify(restaurants));
+    }
+
+    function render() {
+      listEl.innerHTML = "";
+      emptyEl.hidden = restaurants.length !== 0;
+
+      for (const r of restaurants) {
+        const item = document.createElement("div");
+        item.className = "item";
+
+        const badge = document.createElement("div");
+        badge.className = "badge " + (r.enabled ? "on" : "");
+        badge.textContent = r.enabled ? "可抽" : "不抽";
+        badge.title = "點一下切換";
+        badge.addEventListener("click", () => {
+          r.enabled = !r.enabled;
+          save(); render();
+        });
+
+        const mid = document.createElement("div");
+        const name = document.createElement("div");
+        name.className = "name";
+        name.textContent = r.name;
+        const note = document.createElement("div");
+        note.className = "note";
+        note.textContent = r.note ? r.note : "—";
+        mid.appendChild(name);
+        mid.appendChild(note);
+
+        const btns = document.createElement("div");
+        btns.className = "rowBtns";
+
+        const del = document.createElement("button");
+        del.className = "small danger";
+        del.textContent = "刪除";
+        del.addEventListener("click", () => {
+          restaurants = restaurants.filter(x => x.id !== r.id);
+          save(); render();
+        });
+
+        btns.appendChild(del);
+        item.appendChild(badge);
+        item.appendChild(mid);
+        item.appendChild(btns);
+        listEl.appendChild(item);
+      }
+
+      updateSpinButtons();
+    }
+
+    function getPool() {
+      const onlyEligible = onlyEligibleEl.checked;
+      let pool = restaurants;
+      if (onlyEligible) pool = restaurants.filter(r => r.enabled);
+
+      if (pool.length > 1 && lastPick) {
+        const withoutLast = pool.filter(r => r.id !== lastPick.id);
+        if (withoutLast.length > 0) pool = withoutLast;
+      }
+      return pool;
+    }
+
+    function updateSpinButtons() {
+      const pool = getPool();
+      const ok = pool.length > 0;
+      spinBtn.disabled = spinning || !ok;
+      spinAgainBtn.disabled = spinning || !ok;
+    }
+
+    function pickRandom(pool) {
+      const idx = Math.floor(Math.random() * pool.length);
+      return pool[idx];
+    }
+
+    async function spin() {
+      const pool = getPool();
+      if (spinning || pool.length === 0) return;
+
+      spinning = true;
+      resultHint.textContent = "";
+      updateSpinButtons();
+
+      const duration = 1700 + Math.random() * 900;
+      const start = performance.now();
+      let current = pickRandom(pool);
+      slotText.textContent = current.name;
+
+      function tick(now) {
+        const t = now - start;
+        const progress = Math.min(1, t / duration);
+        const interval = 50 + Math.floor(210 * (progress * progress));
+
+        if (!tick.last || now - tick.last >= interval) {
+          current = pickRandom(pool);
+          slotText.textContent = current.name;
+          tick.last = now;
+        }
+
+        if (progress < 1) {
+          requestAnimationFrame(tick);
+        } else {
+          const finalPick = pickRandom(pool);
+          lastPick = finalPick;
+          slotText.textContent = finalPick.name;
+          resultHint.textContent = finalPick.note
+            ? `✅ 就吃：${finalPick.name}（${finalPick.note}）`
+            : `✅ 就吃：${finalPick.name}`;
+          spinning = false;
+          updateSpinButtons();
+
+          // 抽完停在拉霸頁（不用自動跳頁）
+        }
+      }
+      requestAnimationFrame(tick);
+    }
+
+    addForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const name = nameInput.value.trim();
+      const note = noteInput.value.trim();
+      if (!name) return;
+
+      restaurants.unshift({ id: uid(), name, note, enabled: true, createdAt: Date.now() });
+      save();
+      nameInput.value = "";
+      noteInput.value = "";
+      render();
+
+      if (!lastPick) slotText.textContent = "按「開始拉霸」🎰";
+
+      // ✅ 新增完自動停在「清單」頁，讓你繼續加
+      showPage("list");
+    });
+
+    spinBtn.addEventListener("click", spin);
+    spinAgainBtn.addEventListener("click", spin);
+
+    seedBtn.addEventListener("click", () => {
+      const demo = [
+        { name: "牛肉麵", note: "熱湯派", enabled: true },
+        { name: "日式拉麵", note: "想吃濃的", enabled: true },
+        { name: "便當店", note: "快速解決", enabled: true },
+        { name: "火鍋", note: "冬天爽", enabled: true },
+        { name: "滷肉飯", note: "台味", enabled: true }
+      ];
+      for (const d of demo.reverse()) restaurants.unshift({ id: uid(), ...d, createdAt: Date.now() });
+      save(); render();
+      slotText.textContent = "按「開始拉霸」🎰";
+      showPage("list");
+    });
+
+    clearBtn.addEventListener("click", () => {
+      restaurants = [];
+      lastPick = null;
+      save(); render();
+      slotText.textContent = "（先新增餐廳）";
+      resultHint.textContent = "";
+      showPage("slot");
+    });
+
+    onlyEligibleEl.addEventListener("change", updateSpinButtons);
+
+    // init
+    render();
+    if (restaurants.length > 0) slotText.textContent = "按「開始拉霸」🎰";
+    showPage("slot");
+  </script>
+</body>
+</html>
